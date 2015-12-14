@@ -1,2 +1,0 @@
-# amka
-AMKA Validator
