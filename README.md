@@ -1,4 +1,4 @@
-# Amka
+# Amka Validator / Generator
 
 This gem validates and/or generates A.M.K.A Greek social security numbers by
 using the Luhn algorithm, as described in this [Wikipedia article](https://en.wikipedia.org/wiki/Luhn_algorithm).
