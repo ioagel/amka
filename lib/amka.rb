@@ -1,5 +1,4 @@
 require 'amka/version'
-require 'amka/luhn'
 require 'date'
 
 module Amka
@@ -42,13 +41,10 @@ module Amka
       return false
     end
 
-    # day = amka[0..1].to_i
-    # month = amka[2..3].to_i
-    # year = amka[4..5].to_i
-
-    # Date.valid_date?(year, month, day)
     true
   end
   private_class_method :valid_date?
 
 end
+
+require 'amka/luhn'
