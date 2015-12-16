@@ -17,6 +17,7 @@ as it should. Try you own and your family AMKA.
 belongs to a given person. The same applies to the generator.
 
 ## Installation
+Requires ruby >= 2.0.0
 
 Add this line to your application's Gemfile:
 
