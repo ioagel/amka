@@ -6,7 +6,7 @@ module Amka
   def self.valid?(amka, year = nil)
     Utils.string_with_digits_or_fail amka
 
-    return false unless amka.length == 11
+    return false unless length_is_11?(amka)
 
     return Luhn.valid?(amka) if Utils.valid_date?(amka, year)
 
@@ -35,22 +35,20 @@ module Amka
   end
 
   def self.generate_with_date_of_birth(date_of_birth)
-    date_of_birth.is_a?(String) && date_of_birth.match(%r{\A\d?\d{1}/\d?\d{1}/\d{4}\Z}) or
-      fail ArgumentError, 'date of birth must be in this format: 23/11/1990!'
+    Utils.string_with_date_or_fail date_of_birth
 
-    day, month, year = date_of_birth.split('/').map do |i|
-      if i.length == 1
-        '0' << i
-      else
-        i
-      end
-    end
+    day, month, year = date_of_birth.split('/').map { |i| i.length == 1 && ('0' << i) or i }
     date_6_digit = day << month << year[2..3]
     fail ArgumentError, 'The date of birth is invalid!' unless Utils.valid_date?(date_6_digit, year)
 
     Luhn.generate(11, date_6_digit)
   end
   private_class_method :generate_with_date_of_birth
+
+  def self.length_is_11?(id)
+    id.length == 11
+  end
+  private_class_method :length_is_11?
 
 end
 

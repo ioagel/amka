@@ -12,17 +12,12 @@ module Amka
     end
 
     def self.generate(total, id_start = '')
-      Utils.string_with_digits_or_empty_or_fail id_start
-      total.is_a?(Integer) && total > 0 or
-        fail ArgumentError, "Total: #{total} must be a non-zero positive integer!"
-
-      total > (id_start_length = id_start.length) or
-        fail ArgumentError, "Total: #{total} must be greater than: #{id_start_length}!"
-
+      validate_generate_args_or_fail(total, id_start)
       id_start == '' && total == 1 and return '0'
 
-      last_digits_length = total - id_start_length
+      last_digits_length = total - id_start.length
       last_digits_except_check = ''
+      # subtract by one to account for the check digit
       (last_digits_length - 1).times { last_digits_except_check << rand(0..9).to_s }
       luhn_id_except_check_digit = id_start << last_digits_except_check
 
@@ -37,7 +32,8 @@ module Amka
       luhn_id_double = luhn_id.chars.reverse.map(&:to_i).map.with_index do |digit, i|
         if (!generate && i.odd?) || (generate && i.even?)
           if (digit *= 2) > 9
-            digit = digit.to_s.chars.map(&:to_i).reduce(:+)
+            # digit = digit.to_s.chars.map(&:to_i).reduce(:+)
+            digit -= 9
           end
         end
         digit
@@ -45,6 +41,15 @@ module Amka
       luhn_id_double.reduce(:+)
     end
     private_class_method :calculate_digits_sum
+
+    def self.validate_generate_args_or_fail(total, id_start)
+      Utils.string_with_digits_or_empty_or_fail id_start
+      Utils.positive_integer_or_fail total
+      total > id_start.length or
+        fail ArgumentError, "'#{total}': must be greater at least by one from string length: "\
+                            "#{id_start.length}, to account for the check digit!"
+    end
+    private_class_method :validate_generate_args_or_fail
 
   end
 end

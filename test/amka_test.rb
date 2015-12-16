@@ -66,4 +66,26 @@ class AmkaTest < Minitest::Test
     assert_equal 4, false_positive_valid_amka.length
   end
 
+  def test_amka_not_valid_when_valid_date_valid_luhn_but_length_not_11
+    wrong_length_ids = %w(1111897 020498861 0911045466 170567716585)
+
+    # first assert that dates are valid
+    date_valid = wrong_length_ids.select { |id| Date.strptime(id[0..5], '%d%m%y') and true }
+    assert_equal 4, date_valid.length
+    #
+    # then assert that ids are valid according to Luhn algorithm
+    valid_luhns = wrong_length_ids.select { |id| Amka::Luhn.valid? id }
+    assert_equal 4, valid_luhns.length
+
+    # then assert that these ids are not valid amka
+    valid_amka = wrong_length_ids.select { |id| Amka.valid? id }
+    assert_equal 0, valid_amka.length
+
+    # and to prove the above assertion lets stub the length_is_11?
+    # private class method that is called by Amka.valid?
+    Amka.stubs(:length_is_11?).returns(true)
+    false_positive_valid_amka = wrong_length_ids.select { |id| Amka.valid? id }
+    assert_equal 4, false_positive_valid_amka.length
+  end
+
 end

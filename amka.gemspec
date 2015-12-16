@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Ioannis Angelakopoulos"]
   spec.email         = ["ioagel@gmail.com"]
 
-  spec.summary       = %q{A.M.K.A Generator and Validator}
-  spec.description   = %q{Generates and Validates Greek A.M.K.A (social security number), using the Luhn algorithm.}
+  spec.summary       = %q{AMKA/Luhn IDs Generator and Validator}
+  spec.description   = %q{Generates and Validates Greek A.M.K.A (social security number) and Luhn IDs, using the Luhn algorithm. DISCLAIMER: It does not validate the real existence of the A.M.K.A or that it belongs to a given person. The same applies to the generator.}
   spec.homepage      = "https://github.com/ioagel/amka"
   spec.license       = "MIT"
 
