@@ -43,6 +43,10 @@ Amka.valid?('01011441432')
 # returns false (i did not use a valid one in this example just in case
 # it belonged to a real person!!!!)
 
+# You can also pass the 4 digit year of birth as a second string argument
+# This will increase the accuracy of the date part of validation to 100%.
+Amka.valid?('111098xxxxx', '1998')
+
 # To generate (returns the AMKA as a string)
 Amka.generate
 
