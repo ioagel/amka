@@ -58,7 +58,7 @@ Amka::Luhn.valid?('1142376755673') # returns true
 # To generate a Luhn id
 # takes up to 2 arguments: total, id_start(optional)
 # total: how many digits you want in the Luhn generated
-# id_start: string of numbers to include from the start of the Luhn
+# id_start: string of numbers to include at the start of the Luhn
 # - total must be greater than id_start by at least one, to account for the
 #   rightmost check digit.
 Amka::Luhn.generate(13) # returns '5361281695669'
