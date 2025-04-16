@@ -12,6 +12,8 @@ This document provides comprehensive examples and guidelines for using the AMKA 
     - [Validation](#validation)
     - [Generation](#generation)
   - [Advanced Usage](#advanced-usage)
+    - [Detailed Validation](#detailed-validation)
+    - [Exception-based Validation](#exception-based-validation)
     - [Working with Birth Dates](#working-with-birth-dates)
     - [Using the Luhn Algorithm Directly](#using-the-luhn-algorithm-directly)
   - [Error Handling](#error-handling)
@@ -54,7 +56,7 @@ require 'amka'
 You can validate an AMKA number with a simple call:
 
 ```ruby
-# Basic validation
+# Basic validation (returns true or false)
 Amka.valid?('01019012345')  # => true or false
 
 # The validation checks:
@@ -92,6 +94,64 @@ amka = Amka.generate('15/12/1985')  # => "15128512345"
 
 ## Advanced Usage
 
+### Detailed Validation
+
+For more detailed feedback on validation failures, use the `validate` method which returns an array of error messages:
+
+```ruby
+# Get detailed validation errors
+errors = Amka.validate('123')
+if errors.empty?
+  puts "Valid AMKA!"
+else
+  puts "Validation failures: #{errors.join(', ')}"
+  # => "Validation failures: AMKA must be exactly 11 digits long"
+end
+
+# Multiple validation errors are collected
+errors = Amka.validate('123ABC')
+puts errors.inspect
+# => ["AMKA must contain only digits", "AMKA must be exactly 11 digits long"]
+
+# Checking specific validation failures
+errors = Amka.validate('01AB9012345')
+if errors.any? { |e| e.include?('digits') }
+  puts "The AMKA contains non-digit characters"
+end
+```
+
+### Exception-based Validation
+
+When you prefer exceptions for control flow, use the `validate!` method:
+
+```ruby
+# Validation with exceptions
+begin
+  Amka.validate!('01019012345')  # Returns true when valid
+  puts "AMKA is valid!"
+rescue Amka::ValidationError => e
+  puts "Invalid AMKA: #{e.message}"
+end
+
+# Different error messages for different validation failures
+begin
+  Amka.validate!('ABC')
+rescue Amka::ValidationError => e
+  case e.message
+  when /must be a string/
+    puts "Wrong type"
+  when /must contain only digits/
+    puts "Non-digit characters found"
+  when /must be exactly 11 digits/
+    puts "Wrong length"
+  when /valid date/
+    puts "Invalid birth date"
+  when /Luhn algorithm/
+    puts "Failed checksum"
+  end
+end
+```
+
 ### Working with Birth Dates
 
 The first 6 digits of an AMKA represent a date of birth in DDMMYY format:
@@ -115,6 +175,10 @@ The gem includes a standalone implementation of the Luhn algorithm that can be u
 Amka::Luhn.valid?('4532015112830366')  # => true (valid credit card number)
 Amka::Luhn.valid?('1234567890')        # => false
 
+# Exception-free Luhn validation
+Amka::Luhn.safe_valid?('4532015112830366')  # => true
+Amka::Luhn.safe_valid?(nil)                 # => false (instead of raising an exception)
+
 # Generate a valid Luhn number of specific length
 luhn_id = Amka::Luhn.generate(16)  # => "4532015112830366"
 
@@ -124,15 +188,30 @@ luhn_id = Amka::Luhn.generate(16, '4532')  # => "4532015112830366"
 
 ## Error Handling
 
-The gem will raise descriptive `ArgumentError` exceptions for invalid inputs:
+The gem provides two approaches to error handling:
+
+1. Boolean methods (`valid?`, `safe_valid?`) that never raise exceptions
+2. Methods that use exceptions for validation failures
+
+The exception hierarchy is:
+
+```
+StandardError
+└── Amka::Error
+    └── Amka::ValidationError
+```
+
+Examples of handling exceptions:
 
 ```ruby
+# Using validate!
 begin
-  Amka.valid?(12345)  # Not a string
-rescue ArgumentError => e
-  puts e.message  # => "'12345': must be a string of digits only!"
+  Amka.validate!('ABC123')
+rescue Amka::ValidationError => e
+  puts "Validation error: #{e.message}"
 end
 
+# Using the original methods
 begin
   Amka.generate('invalid-date')
 rescue ArgumentError => e
@@ -144,6 +223,12 @@ begin
 rescue ArgumentError => e
   puts e.message  # => "The date of birth is invalid!"
 end
+
+begin
+  Amka::Luhn.valid?(12345)  # Not a string
+rescue ArgumentError => e
+  puts e.message  # => "'12345': must be a string of digits only!"
+end
 ```
 
 ## Performance Considerations
@@ -151,6 +236,7 @@ end
 - The validation and generation methods are lightweight and suitable for high-volume use
 - No external dependencies are required
 - All operations are performed in memory without any I/O
+- Boolean methods (`valid?`, `safe_valid?`) are faster than methods that collect detailed errors
 
 ## Use Cases
 
@@ -159,3 +245,4 @@ end
 - Testing systems that need to generate sample data
 - Any application that needs to implement the Luhn algorithm validation
 - Form validation for Greek websites
+- Applications requiring detailed validation feedback or different validation strategies
