@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
     'homepage_uri' => spec.homepage,
     'source_code_uri' => spec.homepage,
     'changelog_uri' => "#{spec.homepage}/blob/master/CHANGELOG.md",
+    'documentation_uri' => 'http://rubydoc.info/gems/amka',
     'rubygems_mfa_required' => 'true'
   }
 
