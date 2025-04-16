@@ -1,0 +1,52 @@
+name: Ruby CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ["2.7", "3.0", "3.1", "3.2", "3.3", "3.4"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: false
+      - name: Install dependencies
+        run: bundle install
+      - name: Run tests
+        run: bundle exec rake
+      - name: Run Rubocop
+        run: bundle exec rubocop
+
+  publish:
+    needs: test
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: false
+      - name: Install dependencies
+        run: bundle install
+      - name: Publish to RubyGems
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          gem build *.gemspec
+          gem push *.gem
+        env:
+          GEM_HOST_API_KEY: ${{secrets.RUBYGEMS_AUTH_TOKEN}}
