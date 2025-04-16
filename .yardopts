@@ -1,0 +1,11 @@
+--markup markdown
+--markup-provider redcarpet
+--readme README.md
+--title 'AMKA Gem Documentation'
+--protected
+--private
+--embed-mixins
+--plugin yard-tomdoc
+-
+LICENSE.txt
+CHANGELOG.md
