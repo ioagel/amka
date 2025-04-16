@@ -6,7 +6,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'bundler', '~> 2.4'
   gem 'rake', '~> 13.0'
   gem 'redcarpet', '~> 3.6', require: false
   gem 'rubocop', '~> 1.56', require: false
