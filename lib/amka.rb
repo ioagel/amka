@@ -31,6 +31,9 @@ module Amka
   # Standard error class for the Amka gem
   class Error < StandardError; end
 
+  # Error raised when AMKA format or content is invalid
+  class ValidationError < Error; end
+
   # Validates whether a given string is a valid AMKA
   #
   # The validation checks three conditions:
@@ -38,7 +41,10 @@ module Amka
   # 2. The first 6 digits must form a valid date (DDMMYY format)
   # 3. The entire number must satisfy the Luhn algorithm check
   #
-  # @param amka [String] the AMKA to validate, must be a string containing only digits
+  # This method will always return a boolean and never raise exceptions,
+  # returning false for any input that doesn't meet the AMKA criteria.
+  #
+  # @param amka [Object] the AMKA to validate, should be a string containing only digits
   # @param year [String, nil] optional four-digit year to match against
   #   When provided, improves the validation by ensuring the birth year
   #   matches exactly (resolves century ambiguity in 2-digit years)
@@ -47,14 +53,120 @@ module Amka
   #   Amka.valid?('17019012345')  #=> true
   # @example Validating with explicit year
   #   Amka.valid?('17019012345', '1990')  #=> true
+  # @example Validating invalid input
+  #   Amka.valid?(nil)  #=> false
+  #   Amka.valid?(12345)  #=> false
+  #   Amka.valid?('abc123')  #=> false
   def self.valid?(amka, year = nil)
-    Utils.string_with_digits_or_fail(amka)
-
+    # Return false for non-string input
+    return false unless amka.is_a?(String)
+    # Return false for strings with non-digits
+    return false unless amka.match(/\A\d+\Z/)
+    # Check length requirement
     return false unless length_is_11?(amka)
 
-    return Luhn.valid?(amka) if Utils.valid_date?(amka, year)
+    # Check if date and Luhn algorithm are valid
+    begin
+      return false unless Utils.valid_date?(amka, year)
 
-    false
+      Luhn.safe_valid?(amka)
+    rescue ArgumentError
+      # If any validation raises an exception, the AMKA is invalid
+      false
+    end
+  end
+
+  # Validates an AMKA and returns an array of validation errors
+  #
+  # This method provides detailed feedback about why validation failed,
+  # returning an empty array for valid AMKAs or an array of error messages
+  # for invalid ones.
+  #
+  # @param amka [Object] the AMKA to validate
+  # @param year [String, nil] optional four-digit year to match against
+  # @return [Array<String>] empty array if valid, otherwise contains error messages
+  # @example Get validation errors
+  #   errors = Amka.validate(input)
+  #   if errors.empty?
+  #     puts "Valid AMKA!"
+  #   else
+  #     puts "Invalid AMKA: #{errors.join(', ')}"
+  #   end
+  def self.validate(amka, year = nil)
+    errors = []
+
+    # Check for basic format issues and return early if found
+    basic_format_errors = check_basic_format(amka)
+    return basic_format_errors unless basic_format_errors.empty?
+
+    # Check length
+    errors << 'AMKA must be exactly 11 digits long' unless length_is_11?(amka)
+
+    # Check date format
+    check_date(errors, amka, year)
+
+    # Check Luhn algorithm
+    check_luhn(errors, amka)
+
+    errors
+  end
+
+  # Helper method to validate basic format requirements
+  # @return [Array<String>] empty if valid, otherwise contains error message
+  def self.check_basic_format(amka)
+    errors = []
+
+    unless amka.is_a?(String)
+      errors << 'AMKA must be a string'
+      return errors
+    end
+
+    errors << 'AMKA must contain only digits' unless amka.match(/\A\d+\Z/)
+
+    errors
+  end
+  private_class_method :check_basic_format
+
+  # Helper method to validate date format
+  def self.check_date(errors, amka, year)
+    unless Utils.valid_date?(amka, year)
+      errors << 'First 6 digits of AMKA must form a valid date (DDMMYY)'
+    end
+  rescue ArgumentError
+    errors << 'Invalid date format in AMKA'
+  end
+  private_class_method :check_date
+
+  # Helper method to validate Luhn algorithm
+  def self.check_luhn(errors, amka)
+    errors << 'AMKA must satisfy the Luhn algorithm check' unless Luhn.safe_valid?(amka)
+  rescue StandardError
+    errors << 'Error checking Luhn algorithm'
+  end
+  private_class_method :check_luhn
+
+  # Strictly validates an AMKA and raises exceptions for invalid input
+  #
+  # Similar to valid? but raises specific exceptions when validation fails,
+  # which is useful for cases where you need detailed error information
+  # or when you prefer exceptions for control flow.
+  #
+  # @param amka [Object] the AMKA to validate
+  # @param year [String, nil] optional four-digit year to match against
+  # @return [true] if the AMKA is valid
+  # @raise [ValidationError] if the AMKA is invalid, with details about why
+  # @example Strict validation with exception handling
+  #   begin
+  #     Amka.validate!('17019012345')  #=> true (if valid)
+  #   rescue Amka::ValidationError => e
+  #     puts e.message  # Contains detailed error info
+  #   end
+  def self.validate!(amka, year = nil)
+    errors = validate(amka, year)
+
+    raise ValidationError, errors.first unless errors.empty?
+
+    true
   end
 
   # Generates a random valid AMKA

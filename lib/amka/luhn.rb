@@ -50,6 +50,33 @@ module Amka
       (digits_sum % 10).zero?
     end
 
+    # Validates if a given ID follows the Luhn algorithm, without raising exceptions
+    #
+    # This is a safe version of valid? that returns false for any invalid input
+    # instead of raising exceptions. It's designed for use in validation pipelines
+    # where exceptions would need to be caught.
+    #
+    # @param luhn_id [Object] the ID to validate
+    # @return [Boolean] true if valid according to Luhn algorithm, false otherwise
+    # @example Safe validation with clean inputs
+    #   Amka::Luhn.safe_valid?('4532015112830366')  #=> true
+    # @example Safe validation with problematic inputs
+    #   Amka::Luhn.safe_valid?(nil)  #=> false
+    #   Amka::Luhn.safe_valid?(12345)  #=> false
+    #   Amka::Luhn.safe_valid?('abc-123')  #=> false
+    def self.safe_valid?(luhn_id)
+      # Return false for non-string input
+      return false unless luhn_id.is_a?(String)
+      # Return false for strings with non-digits
+      return false unless luhn_id.match(/\A\d+\Z/)
+
+      digits_sum = calculate_digits_sum(luhn_id)
+      (digits_sum % 10).zero?
+    rescue StandardError
+      # Catch any unexpected errors and return false
+      false
+    end
+
     # Generates a valid Luhn ID
     #
     # Creates a number that passes the Luhn check by:

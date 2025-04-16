@@ -56,16 +56,31 @@ gem install amka
 ```ruby
 require 'amka'
 
-# To validate (takes the AMKA as a string and returns true or false)
+# Simple Validation (returns true or false)
 Amka.valid?('01011441432')
-# returns false (i did not use a valid one in this example just in case
-# it belonged to a real person!!!!)
+# returns false
 
 # You can also pass the 4 digit year of birth as a second string argument
 # This will increase the accuracy of the date part of validation to 100%.
 Amka.valid?('111098xxxxx', '1998')
 
-# To generate (returns the AMKA as a string)
+# Detailed Validation with Error Messages
+errors = Amka.validate('01AB9012345')
+if errors.empty?
+  puts "Valid AMKA!"
+else
+  puts "Invalid AMKA: #{errors.join(', ')}"
+  # => "Invalid AMKA: AMKA must contain only digits"
+end
+
+# Exception-based Validation
+begin
+  Amka.validate!('01019012345')  # Returns true if valid
+rescue Amka::ValidationError => e
+  puts "Error: #{e.message}"
+end
+
+# To generate a random AMKA (returns the AMKA as a string)
 Amka.generate
 
 # To generate with a specific date (date format: [d]d/[m]m/yyyy)
