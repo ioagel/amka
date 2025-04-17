@@ -1,6 +1,11 @@
+plugins:
+  - rubocop-rake
+  - rubocop-rspec
+
 AllCops:
   TargetRubyVersion: 2.7
   NewCops: enable
+  SuggestExtensions: false
 
 Style/StringLiterals:
   Enabled: true
@@ -39,3 +44,22 @@ Style/FrozenStringLiteralComment:
 Style/ClassAndModuleChildren:
   Enabled: true
   EnforcedStyle: nested
+
+# RSpec configurations
+RSpec/ExampleLength:
+  Max: 20 # Allow longer examples
+
+RSpec/MultipleExpectations:
+  Max: 5 # Allow up to 5 expectations per example
+
+RSpec/NestedGroups:
+  Max: 4 # Allow up to 4 levels of nesting
+
+RSpec/SpecFilePathFormat:
+  Enabled: false # Disable the path format requirement
+
+RSpec/SpecFilePathSuffix:
+  Enabled: false # Disable file path suffix requirement
+
+RSpec/DescribeClass:
+  Enabled: false # Allow top-level describes without class/module

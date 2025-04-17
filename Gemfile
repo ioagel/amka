@@ -9,6 +9,8 @@ group :development do
   gem 'rake', '~> 13.0'
   gem 'redcarpet', '~> 3.6', require: false
   gem 'rubocop', '~> 1.56', require: false
+  gem 'rubocop-rake', require: false
+  gem 'rubocop-rspec', require: false
   gem 'yard', '~> 0.9.34', require: false
   gem 'yard-tomdoc', '~> 0.7', require: false
 end

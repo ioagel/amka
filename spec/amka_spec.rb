@@ -28,7 +28,7 @@ RSpec.describe Amka do
         invalid_inputs = [nil, 123_456_789_012, [], {}, true]
 
         invalid_inputs.each do |input|
-          expect(described_class.valid?(input)).to eq(false)
+          expect(described_class.valid?(input)).to be(false)
         end
       end
     end
@@ -37,7 +37,7 @@ RSpec.describe Amka do
       invalid_strings = %w[123abc456 A12345678901 123-456-789]
 
       invalid_strings.each do |input|
-        expect(described_class.valid?(input)).to eq(false)
+        expect(described_class.valid?(input)).to be(false)
       end
     end
 
@@ -179,7 +179,7 @@ RSpec.describe Amka do
       luhn_invalid = '01019012340' # Changed last digit
 
       # Verify the first 6 digits are a valid date
-      expect(Amka::Utils.valid_date?(luhn_invalid)).to eq(true)
+      expect(Amka::Utils.valid_date?(luhn_invalid)).to be(true)
 
       # Now validate it should fail Luhn check
       errors = described_class.validate(luhn_invalid)
@@ -193,7 +193,7 @@ RSpec.describe Amka do
       valid_amka = described_class.generate
 
       # Should not raise an exception
-      expect(described_class.validate!(valid_amka)).to eq(true)
+      expect(described_class.validate!(valid_amka)).to be(true)
     end
 
     it 'raises ValidationError for non-string inputs' do
@@ -242,7 +242,7 @@ RSpec.describe Amka do
       luhn_invalid = '01019012340' # Changed last digit
 
       # Verify the first 6 digits are a valid date
-      expect(Amka::Utils.valid_date?(luhn_invalid)).to eq(true)
+      expect(Amka::Utils.valid_date?(luhn_invalid)).to be(true)
 
       # Now validate it should fail Luhn check
       expect do
